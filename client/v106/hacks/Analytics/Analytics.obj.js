@@ -44,8 +44,7 @@
                 var e = {
                     t: "screenview",
                     cd: t
-                };
-                this.sendRequest(e), 
+                }; 
 				this.lastScreenName = t
             },
             event: function(t, e, o, n) {
@@ -57,7 +56,6 @@
                     ev: n,
                     cd: this.lastScreenName
                 };
-                this.sendRequest(r)
             },
             exception: function(t, e) {
                 var o = {
@@ -65,7 +63,6 @@
                     exd: t,
                     exf: e || 0
                 };
-                this.sendRequest(o)
             },
             timing: function(t, e, o, n) {
                 var r = {
@@ -75,7 +72,6 @@
                     utt: o,
                     utl: n
                 };
-                this.sendRequest(r)
             },
             ecommerce: {
                 transactionID: !1,
@@ -91,22 +87,8 @@
                             tr: t,
                             cu: this.currency
                         };
-                    this.sendRequest(n), 
-					e.forEach(function(t) {
-                        var e = {
-                            t: "item",
-                            ti: o,
-                            in : t.name,
-                            ip: t.price,
-                            iq: t.qty,
-                            ic: t.id,
-                            cu: this.currency
-                        };
-                        this.sendRequest(e)
-                    })
                 }
             },
             custom: function(t) {
-                this.sendRequest(t)
             }
         };
