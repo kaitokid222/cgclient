@@ -1,0 +1,14 @@
+Discovered API calls
+https://coregrounds.com/
+ -> app/home
+ -> app/scoregrounds
+ -> app/profile/$playerid
+ -> app/matches/$playerid
+ -> app/match/$matchid
+ -> app/dev
+ -> app/check/name ?{name}
+ -> app/steam/auth
+ -> app/set-region ?{region,crossregion}
+ -> app/reload
+ -> app/training-grounds
+ -> app/upgrade
