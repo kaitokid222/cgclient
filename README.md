@@ -1,2 +1,2 @@
 # cgclient
-Repo to help reversing aspects of the coregrounds.com client.
+Analytics of the cg-client and depending services for educational purposes.
