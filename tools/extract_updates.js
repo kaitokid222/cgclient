@@ -28,7 +28,7 @@ function test(db){
           let b = getId(db.auras, a.effects[0].spellId);
           this.amount += b.effects[0].value + '/';
         }else{
-          this.amount += a.effects[0].value;
+          this.amount += a.effects[0].value + '/';
         }
       }
     }
