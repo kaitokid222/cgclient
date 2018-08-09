@@ -1,44 +1,88 @@
-function getId(arr, id){
-  for(let i = 0; i < arr.length; i++){
-    if(arr[i].id === id){
-      return arr[i];
+function getSpellEffect(id, db){
+  for(let j = 0; j < db.spells.length; j++){
+    if(db.spells[j].id == id){
+      return db.spells[j].effects[0];
     }
   }
 }
-function test(db){
-  let newDB = [];
 
-  class Unit{
-    constructor(name,minionID,upgrades){
-      this.name = name;
-      this.upgrades = [];
-      for(let i = 0; i < upgrades.length; i++){
-        this.upgrades.push(new Upgrade(upgrades[i].name, upgrades[i].ids));
-      }
+function getAuraEffect(id, db){
+  for(let j = 0; j < db.auras.length; j++){
+    if(db.auras[j].id == id){
+      return db.auras[j].effects[0];
     }
   }
-
-  class Upgrade{
-    constructor(name,ids){
-      this.name = name;
-      this.amount = "";
-      for(let i = 0; i < ids.length; i++){
-        let a = getId(db.auras, ids[i]);
-        if(a.effects[0].type == "trigger_spell"){
-          let b = getId(db.auras, a.effects[0].spellId);
-          this.amount += b.effects[0].value + '/';
-        }else{
-          this.amount += a.effects[0].value;
-        }
-      }
-    }
-  }
-
-  for(let x = 1; x < db.factories.length; x++){
-    if(db.factories[x].minion) newDB.push(new Unit(db.factories[x].name, db.factories[x].minion.id, db.factories[x].minion.upgrades));
-    if(db.factories[x].tower) newDB.push(new Unit(db.factories[x].name, db.factories[x].tower.id, db.factories[x].tower.upgrades));
-  }
-  return newDB;
 }
 
-test(JSON.parse(localStorage.getItem("config")));
+function getModStat(d, db){
+  let eff = undefined;
+  if(typeof(d) == "number"){
+    eff = getSpellEffect(d, db);
+  }else{
+    eff = d;
+  }
+  if(eff.type && eff.type === "mod_stat" || eff.type && eff.type === "mod_stat_percent"){
+    if(eff.value){
+      return eff.value;
+    }else if(eff.efficiency){
+      return eff.efficiency;
+    }else{return null;}
+  }else if(eff.type && eff.type === "mod_spell"){
+    return getModStat(getAuraEffect(11025520, db), db);
+  }else{
+    if(eff.type == "apply_aura"){
+      return getModStat(getAuraEffect(eff.id, db), db);
+    }else if(eff.type == "trigger_spell"){
+      return getModStat(getSpellEffect(eff.spellId, db), db);
+    }
+  }
+}
+class Upgrade{
+  constructor(upgrade, db){
+    this.name = upgrade.name;
+    this.values = [];
+    for(let i = 0; i < upgrade.ids.length; i++){
+      this.values.push(getModStat(upgrade.ids[i], db));
+    }
+  }
+}
+class Minion{
+  constructor(factory, db){
+    this.name = factory.name;
+    this.id = factory.id;
+    this.description = factory.description;
+    this.meta = factory.meta;
+    this.price = factory.price;
+    this.role = factory.role;
+    this.upgrades = [];
+    for(let i = 0; i < factory.minion.upgrades.length; i++){
+      this.upgrades.push(new Upgrade(factory.minion.upgrades[i], db));
+    }
+  }
+}
+class Tower{
+  constructor(factory, db){
+    this.name = factory.name;
+    this.id = factory.id;
+    this.description = factory.description;
+    this.meta = factory.meta;
+    this.price = factory.price;
+    this.role = factory.role;
+    this.upgrades = [];
+    for(let i = 0; i < factory.tower.upgrades.length; i++){
+      this.upgrades.push(new Upgrade(factory.tower.upgrades[i], db));
+    }
+  }
+}
+function extractUpgrades(db){
+  let minions = [];
+  let towers = [];
+  for(let i = 0; i < db.factories.length; i++){
+    if(db.factories[i].minion){
+      minions.push(new Minion(db.factories[i], db));
+    }else if(db.factories[i].tower){
+      towers.push(new Tower(db.factories[i], db));
+    }
+  }
+  return {minions: minions, towers: towers};
+}
