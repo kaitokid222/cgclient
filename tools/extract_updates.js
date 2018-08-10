@@ -1,27 +1,19 @@
+function getById(id, arr){
+  for(let j = 0; j < arr.length; j++){
+    if(arr[j].id == id){
+      return arr[j];
+    }
+  }
+}
 function getSpellEffect(id, db){
-  for(let j = 0; j < db.spells.length; j++){
-    if(db.spells[j].id == id){
-      return db.spells[j].effects[0];
-    }
-  }
+  return getById(id,db.spells).effects[0];
 }
-
 function getBounces(id, db){
-  for(let j = 0; j < db.projectiles.length; j++){
-    if(db.projectiles[j].id == id){
-      return db.projectiles[j].bounces;
-    }
-  }
+  return getById(id,db.projectiles).bounces;
 }
-
 function getAuraEffect(id, db){
-  for(let j = 0; j < db.auras.length; j++){
-    if(db.auras[j].id == id){
-      return db.auras[j].effects[0];
-    }
-  }
+  getById(id, db.auras).effects[0];
 }
-
 function getModStat(d, db){
   let eff = undefined;
   if(typeof(d) == "number"){
