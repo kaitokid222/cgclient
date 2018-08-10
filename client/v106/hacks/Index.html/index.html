@@ -5,6 +5,7 @@
     <link type="text/css" rel="stylesheet" href="styles.css" media="all" />
     <script type="text/javascript" src="coregrounds.js"></script>
     <script type="text/javascript" src="window.js"></script>
+    <script type="text/javascript" src="ink.js"></script>
     <script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
   </head>
   <script>
@@ -20,16 +21,6 @@
     win.on('navigation', defaultBrowser);
     // Keybord shortcuts
     document.addEventListener('keyup', (e) => {
-      // Force Refresh
-      if (e.keyCode === 116) chrome.runtime.reload();
-      // Toggle menu with F10
-      if (e.keyCode === 121){
-	    if(!$("#menu").classList.contains("active")){
-		  showMenu();
-		}else{
-          hideMenu();
-		}
-	  }
       // Toggle fullscreen with F11
       if (e.keyCode === 122) toggleFullscreen();
     }, false);
