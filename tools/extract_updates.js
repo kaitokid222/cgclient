@@ -6,6 +6,14 @@ function getSpellEffect(id, db){
   }
 }
 
+function getBounces(id, db){
+  for(let j = 0; j < db.projectiles.length; j++){
+    if(db.projectiles[j].id == id){
+      return db.projectiles[j].bounces;
+    }
+  }
+}
+
 function getAuraEffect(id, db){
   for(let j = 0; j < db.auras.length; j++){
     if(db.auras[j].id == id){
@@ -24,11 +32,17 @@ function getModStat(d, db){
   if(eff.type && eff.type === "mod_stat" || eff.type && eff.type === "mod_stat_percent"){
     if(eff.value){
       return eff.value;
-    }else if(eff.efficiency){
-      return eff.efficiency;
     }else{return null;}
   }else if(eff.type && eff.type === "mod_spell"){
-    return getModStat(getAuraEffect(11025520, db), db);
+    if(eff.mod.effect){
+      return getModStat(getAuraEffect(eff.mod.effect.data.id, db), db);
+    }else if(eff.mod.effectivity){
+      return eff.mod.effectivity;
+    }else if(eff.mod.projectileId){
+      return getBounces(eff.mod.projectileId, db);
+    }else{
+      return eff;
+    }
   }else{
     if(eff.type == "apply_aura"){
       return getModStat(getAuraEffect(eff.id, db), db);
