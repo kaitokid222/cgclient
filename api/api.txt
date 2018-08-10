@@ -12,3 +12,4 @@ https://coregrounds.com/
  -> app/reload
  -> app/training-grounds
  -> app/upgrade
+ -> app/achievements/$playerid
