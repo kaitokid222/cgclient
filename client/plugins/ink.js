@@ -24,6 +24,7 @@ class menuButton{
 
 window.cg.toolsettings = {
     autospawn : 0,
+    autospawn_limit : 9,
     autoupgrade : 0,
     autowalls : 0,
 };
@@ -36,7 +37,7 @@ cg.menuButtons.push(new menuButton("wallbot","Spam Walls", "cg.togglewallspam();
 window.cg.toggleautospawn = function(){
 	if(cg.toolsettings.autospawn === 0){
 		cg.toolsettings.autospawn = 1;
-		window.cg.spawninterval = setInterval(function(){SpawnMinion();}, 5000);
+		window.cg.spawninterval = setInterval(function(){SpawnMinion();}, 1200);
 	}else{
 		cg.toolsettings.autospawn = 0;
 		clearInterval(cg.spawninterval);
@@ -44,17 +45,21 @@ window.cg.toggleautospawn = function(){
 	cg.menuButtons[0].toggle();
 }
 
+window.cg.setautospawnlimit = function(){
+	cg.toolsettings.autospawn_limit = document.getElementById("sendlimit").value;
+	document.getElementById("sendlimit_label").innerHTML = document.getElementById("sendlimit").value;
+}
+
 function SpawnMinion() {
 	if (2 === cg.game.status && 0 === cg.game.state.warmup) {
-		const t = [];
-		for (let e, o = 1; o < 6; o++)
-			(e = cg.game.state.players[cg.game.playerIndex].factories[o]).stacks_current > 0 && 0 === e.cooldown_seconds && t.push(e);
-		if (t.length) {
-			const e = arrayRandom(t);
-			cg.gameserver.emit("ActivateFactory", {index: e.index,position: 0});
-			console.log("worked");
-		}else{
-			console.log("nothing to send");
+		if(cg.checklimit() === true){
+			const t = [];
+			for (let e, o = 1; o < 6; o++)
+				(e = cg.game.state.players[cg.game.playerIndex].factories[o]).stacks_current > 0 && 0 === e.cooldown_seconds && t.push(e);
+			if (t.length){
+				const e = arrayRandom(t);
+				cg.gameserver.emit("ActivateFactory", {index: e.index,position: 0});
+			}
 		}
 	}
 }
@@ -81,24 +86,37 @@ window.cg.togglewallspam = function(){
 	cg.menuButtons[2].toggle();
 }
 
-window.cg.checkstacks = function(){
-	
+window.cg.checklimit = function(){
+	let i = (cg.toolsettings.autospawn_limit/30).toFixed(2);
+	if(cg.game.state.players[cg.game.playerIndex].minion_limit < i){
+		return true;
+	}else{
+		return false;
+	}
 }
 
 window.showtoolMenu = function() {
 	let e = "";
-		e += '<button><div>CG-Helper</div></button>',
-		e += '<div class="menu-spacer"></div>',
+	let i = cg.toolsettings.autospawn_limit;
+		e += '<button><div>CG-Helper</div></button>';
+		e += '<div class="menu-spacer"></div>';
 		cg.menuButtons.forEach(function(b){
-			e += b.getHtml(),
+			e += b.getHtml();
+			if(b.name == "spawnbot"){
+				if(cg.toolsettings.autospawn === 1){
+					e += '<div class="form-item form-range">';
+					e += '<label for="sendlimit">Send until<span id="sendlimit_label">'+ i +'</span></label>';
+					e += '<input type="range" value="'+ i +'" step="3" min="3" max="30" id="sendlimit" oninput="cg.setautospawnlimit()" onchange="cg.setautospawnlimit()">';
+					e += '</div>';
+				}
+			}
 			e += '<div class="menu-spacer"></div>';
 		});
-		e += '<div class="menu-spacer"></div>',
-		e += '<button><div>by h8 & shurutsue</div></button>',
-		//e += `<button onclick="Screens.show('inkmenu'); hideMenu();"><div class="icon">${cg.icons.get("play")}</div><div>MODIFICATIONS</div></button>`, 
-		$("#menu .links").innerHTML = e,
-		$("#menu").classList.add("active"),
-		$("#menu-tint").classList.add("active")
+		e += '<div class="menu-spacer"></div>';
+		e += '<button><div>by h8 & shurutsue</div></button>';
+		$("#menu .links").innerHTML = e;
+		$("#menu").classList.add("active");
+		$("#menu-tint").classList.add("active");
 }
 
 document.addEventListener('keyup', (e) => {
@@ -110,9 +128,7 @@ document.addEventListener('keyup', (e) => {
 		if(!$("#menu").classList.contains("active")){
 			if(cg.game.status === 0){
 				showMenu();
-				//showtoolMenu();
 			}else if(cg.game.status === 2){
-				// ingame
 				showtoolMenu();
 			}
 		}else{
