@@ -36,10 +36,31 @@ cg.menuButtons.push(new menuButton("wallbot","Spam Walls", "cg.togglewallspam();
 window.cg.toggleautospawn = function(){
 	if(cg.toolsettings.autospawn === 0){
 		cg.toolsettings.autospawn = 1;
+		window.cg.spawninterval = setInterval(function(){SpawnMinion();}, 5000);
 	}else{
 		cg.toolsettings.autospawn = 0;
+		clearInterval(cg.spawninterval);
 	}
 	cg.menuButtons[0].toggle();
+}
+
+function SpawnMinion() {
+	if (2 === cg.game.status && 0 === cg.game.state.warmup) {
+		const t = [];
+		for (let e, o = 1; o < 6; o++)
+			(e = cg.game.state.players[cg.game.playerIndex].factories[o]).stacks_current > 0 && 0 === e.cooldown_seconds && t.push(e);
+		if (t.length) {
+			const e = arrayRandom(t);
+			cg.gameserver.emit("ActivateFactory", {index: e.index,position: 0});
+			console.log("worked");
+		}else{
+			console.log("nothing to send");
+		}
+	}
+}
+
+function arrayRandom(t) {
+	return t[Math.floor(Math.random() * t.length)]
 }
 
 window.cg.toggleupgradehelper = function(){
@@ -88,8 +109,8 @@ document.addEventListener('keyup', (e) => {
 	if (e.keyCode === 121){
 		if(!$("#menu").classList.contains("active")){
 			if(cg.game.status === 0){
-				//showMenu();
-				showtoolMenu();
+				showMenu();
+				//showtoolMenu();
 			}else if(cg.game.status === 2){
 				// ingame
 				showtoolMenu();
