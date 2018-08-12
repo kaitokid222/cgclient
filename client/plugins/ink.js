@@ -25,8 +25,10 @@ class menuButton{
 window.cg.toolsettings = {
     autospawn : 0,
     autospawn_limit : 15,
+    autospawn_interval : 1000,
     autoupgrade : 0,
     autoupgrade_min : 3,
+    autoupgrade_interval : 5000,
     autowalls : 0,
 };
 
@@ -39,7 +41,7 @@ cg.menuButtons.push(new menuButton("wallbot","Spam Walls", "cg.togglewallspam();
 window.cg.toggleautospawn = function(){
 	if(cg.toolsettings.autospawn === 0){
 		cg.toolsettings.autospawn = 1;
-		window.cg.spawninterval = setInterval(cg.SpawnMinion, 1200);
+		window.cg.spawninterval = setInterval(cg.SpawnMinion, cg.toolsettings.autospawn_interval);
 		cg.messages.show("activated auto-spawner!");
 	}else{
 		cg.toolsettings.autospawn = 0;
@@ -52,6 +54,13 @@ window.cg.toggleautospawn = function(){
 window.cg.setautospawnlimit = function(){
 	cg.toolsettings.autospawn_limit = document.getElementById("sendlimit").value;
 	document.getElementById("sendlimit_label").innerHTML = document.getElementById("sendlimit").value;
+}
+
+window.cg.setautospawninterval = function(){
+	cg.toolsettings.autospawn_interval = document.getElementById("sendinterval").value;
+	document.getElementById("sendinterval_label").innerHTML = document.getElementById("sendinterval").value;
+	clearInterval(cg.spawninterval);
+	window.cg.spawninterval = setInterval(cg.SpawnMinion, cg.toolsettings.autospawn_interval);
 }
 
 window.cg.checklimit = function(){
@@ -86,7 +95,7 @@ window.cg.arrayRandom = function(t) {
 window.cg.toggleupgradehelper = function(){
 	if(cg.toolsettings.autoupgrade === 0){
 		cg.toolsettings.autoupgrade = 1;
-		window.cg.upgradeinterval = setInterval(cg.tryUpgrade, 1200);
+		window.cg.upgradeinterval = setInterval(cg.tryUpgrade, cg.toolsettings.autoupgrade_interval);
 		cg.messages.show("activated upgrade-helper!");
 	}else{
 		cg.toolsettings.autoupgrade = 0;
@@ -116,6 +125,12 @@ window.cg.setautoupgrademin = function(){
 	document.getElementById("limitminimum_label").innerHTML = document.getElementById("limitminimum").value;
 }
 
+window.cg.setautoupgradeinterval = function(){
+	cg.toolsettings.autoupgrade_interval = document.getElementById("upgradeinterval").value;
+	document.getElementById("upgradeinterval_label").innerHTML = document.getElementById("upgradeinterval").value;
+	clearInterval(cg.upgradeinterval);
+	window.cg.upgradeinterval = setInterval(cg.tryUpgrade, cg.toolsettings.autoupgrade_interval);
+}
 // eof upgrades
 window.cg.togglewallspam = function(){
 	if(cg.toolsettings.autowalls === 0){
@@ -133,7 +148,9 @@ window.cg.togglewallspam = function(){
 window.showtoolMenu = function() {
 	let e = "";
 	let i = cg.toolsettings.autospawn_limit;
+	let ii = cg.toolsettings.autospawn_interval;
 	let c = cg.toolsettings.autoupgrade_min;
+	let cc = cg.toolsettings.autoupgrade_interval;
 		e += '<button><div>CG-Helper</div></button>';
 		e += '<div class="menu-spacer"></div>';
 		cg.menuButtons.forEach(function(b){
@@ -144,13 +161,21 @@ window.showtoolMenu = function() {
 					e += '<label for="sendlimit">Spawn until<span id="sendlimit_label">'+ i +'</span></label>';
 					e += '<input type="range" value="'+ i +'" step="3" min="3" max="30" id="sendlimit" oninput="cg.setautospawnlimit()" onchange="cg.setautospawnlimit()">';
 					e += '</div>';
+					e += '<div class="form-item form-range">';
+					e += '<label for="sendinterval">Spawninterval<span id="sendinterval_label">'+ ii +'ms</span></label>';
+					e += '<input type="range" value="'+ ii +'" step="250" min="500" max="10000" id="sendinterval" oninput="cg.setautospawninterval()" onchange="cg.setautospawninterval()">';
+					e += '</div>';
 				}
 			}
 			if(b.name == "upgradebot"){
 				if(cg.toolsettings.autoupgrade === 1){
 					e += '<div class="form-item form-range">';
-					e += '<label for="limitminimum">Spawn until<span id="limitminimum_label">'+ c +'</span></label>';
-					e += '<input type="range" value="'+ c +'" step="3" min="3" max="'+ i +'" id="limitminimum" oninput="cg.setautoupgrademin()" onchange="cg.autoupgrademin()">';
+					e += '<label for="limitminimum">Minimum alive units<span id="limitminimum_label">'+ c +'</span></label>';
+					e += '<input type="range" value="'+ c +'" step="3" min="3" max="'+ i +'" id="limitminimum" oninput="cg.setautoupgrademin()" onchange="cg.setautoupgrademin()">';
+					e += '</div>';
+					e += '<div class="form-item form-range">';
+					e += '<label for="upgradeinterval">Try Upgrade every <span id="upgradeinterval_label">'+ cc +'ms</span></label>';
+					e += '<input type="range" value="'+ cc +'" step="1000" min="1000" max="10000" id="upgradeinterval" oninput="cg.setautoupgradeinterval()" onchange="cg.setautoupgradeinterval()">';
 					e += '</div>';
 				}
 			}
