@@ -105,7 +105,7 @@ window.showtoolMenu = function() {
 			if(b.name == "spawnbot"){
 				if(cg.toolsettings.autospawn === 1){
 					e += '<div class="form-item form-range">';
-					e += '<label for="sendlimit">Send until<span id="sendlimit_label">'+ i +'</span></label>';
+					e += '<label for="sendlimit">Spawn until<span id="sendlimit_label">'+ i +'</span></label>';
 					e += '<input type="range" value="'+ i +'" step="3" min="3" max="30" id="sendlimit" oninput="cg.setautospawnlimit()" onchange="cg.setautospawnlimit()">';
 					e += '</div>';
 				}
