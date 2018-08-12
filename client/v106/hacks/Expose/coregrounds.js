@@ -7,6 +7,7 @@ window.cg = {
 	game : Game,
 	lobbyserver : LobbyServer,
 	gameserver : GameServer,
-	icons : Icons
+	icons : Icons,
+	messages : Messages,
 };
 });
