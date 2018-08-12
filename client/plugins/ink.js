@@ -58,7 +58,7 @@ window.cg.setautospawnlimit = function(){
 
 window.cg.setautospawninterval = function(){
 	cg.toolsettings.autospawn_interval = document.getElementById("sendinterval").value;
-	document.getElementById("sendinterval_label").innerHTML = document.getElementById("sendinterval").value;
+	document.getElementById("sendinterval_label").innerHTML = document.getElementById("sendinterval").value + 'ms';
 	clearInterval(cg.spawninterval);
 	window.cg.spawninterval = setInterval(cg.SpawnMinion, cg.toolsettings.autospawn_interval);
 }
@@ -127,7 +127,7 @@ window.cg.setautoupgrademin = function(){
 
 window.cg.setautoupgradeinterval = function(){
 	cg.toolsettings.autoupgrade_interval = document.getElementById("upgradeinterval").value;
-	document.getElementById("upgradeinterval_label").innerHTML = document.getElementById("upgradeinterval").value;
+	document.getElementById("upgradeinterval_label").innerHTML = document.getElementById("upgradeinterval").value + 'ms';
 	clearInterval(cg.upgradeinterval);
 	window.cg.upgradeinterval = setInterval(cg.tryUpgrade, cg.toolsettings.autoupgrade_interval);
 }
