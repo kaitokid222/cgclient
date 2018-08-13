@@ -30,12 +30,14 @@ window.cg.toolsettings = {
     autoupgrade_min : 3,
     autoupgrade_interval : 5000,
     autowalls : 0,
+    iol : 0,
 };
 
 window.cg.menuButtons = [];
 cg.menuButtons.push(new menuButton("spawnbot","Keep Spawning", "cg.toggleautospawn(); hideMenu();"));
 cg.menuButtons.push(new menuButton("upgradebot","Upgrade Minions", "cg.toggleupgradehelper(); hideMenu();"));
-cg.menuButtons.push(new menuButton("wallbot","Spam Walls", "cg.togglewallspam(); hideMenu();"));
+cg.menuButtons.push(new menuButton("wallbot","Repair Walls", "cg.togglewallspam(); hideMenu();"));
+cg.menuButtons.push(new menuButton("igoverlay","Show extra Infos", "cg.toggleiol(); hideMenu();"));
 
 // minions 
 window.cg.toggleautospawn = function(){
@@ -143,7 +145,16 @@ window.cg.togglewallspam = function(){
 	cg.menuButtons[2].toggle();
 }
 
-
+window.cg.toggleiol = function(){
+	if(cg.toolsettings.iol === 0){
+		cg.toolsettings.iol = 1;
+		cg.messages.show("activated Ingame Overlay!");
+	}else{
+		cg.toolsettings.iol = 0;
+		cg.messages.show("deactivated Ingame Overlay!");
+	}
+	cg.menuButtons[3].toggle();
+}
 
 window.showtoolMenu = function() {
 	let e = "";
@@ -182,7 +193,7 @@ window.showtoolMenu = function() {
 			e += '<div class="menu-spacer"></div>';
 		});
 		e += '<div class="menu-spacer"></div>';
-		e += '<button><div>by h8 & shurutsue</div></button>';
+		e += '<button><div>by iNk & shurutsue</div></button>';
 		$("#menu .links").innerHTML = e;
 		$("#menu").classList.add("active");
 		$("#menu-tint").classList.add("active");
