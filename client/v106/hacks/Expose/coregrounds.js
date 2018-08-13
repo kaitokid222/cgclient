@@ -12,4 +12,3 @@
     upgradebuttons: upgradeBtns
   };
 });
-});
