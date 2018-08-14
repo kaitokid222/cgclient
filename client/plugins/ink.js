@@ -22,7 +22,6 @@ class menuButton{
   }
 }
 
-// ty stackoverflow
 Array.prototype.remove = function() {
 	var what, a = arguments, L = a.length, ax;
 	while (L && this.length) {
@@ -42,21 +41,14 @@ window.cg.toolsettings = {
     autoupgrade_min : 3,
     autoupgrade_interval : 5000,
     autowalls : 0,
-	// 1 passive, records wallplacement, tries to recover
-	// 2 as passive but stack is available for certain time it places the wall somewhre (pattern, random)
-	// 3 agressive, follows its own pattern to build walls
-    autowalls_mode : 1,
-    iol : 0,
 };
 
 window.cg.wallstrategy = [];
 window.cg.menuButtons = [];
 cg.menuButtons.push(new menuButton("spawnbot","Keep Spawning", "cg.toggleautospawn(); hideMenu();"));
 cg.menuButtons.push(new menuButton("upgradebot","Upgrade Minions", "cg.toggleupgradehelper(); hideMenu();"));
-cg.menuButtons.push(new menuButton("wallbot","Wallhelper", "cg.togglewallspam(); hideMenu();"));
-cg.menuButtons.push(new menuButton("igoverlay","Show extra Infos", "cg.toggleiol(); hideMenu();"));
+cg.menuButtons.push(new menuButton("wallbot","Rebuild Walls", "cg.togglewallspam(); hideMenu();"));
 
-// disable everything after the match
 window.cg.clearToolsettings = function(){
 	if(cg.toolsettings.autospawn === 1){
 		cg.toolsettings.autospawn = 0;
@@ -71,17 +63,12 @@ window.cg.clearToolsettings = function(){
 		cg.menuButtons[2].toggle();
 	}
 	window.cg.wallstrategy = [];
-	if(cg.toolsettings.iol === 1){
-		cg.toolsettings.iol = 0;
-		cg.menuButtons[3].toggle();
-	}
 }
 
 window.cg.arrayRandom = function(t) {
 	return t[Math.floor(Math.random() * t.length)]
 }
 
-// minions 
 window.cg.toggleautospawn = function(){
 	if(cg.toolsettings.autospawn === 0){
 		cg.toolsettings.autospawn = 1;
@@ -129,9 +116,7 @@ window.cg.SpawnMinion = function() {
 		}
 	}
 }
-// eof minion
 
-// upgradehelper
 window.cg.toggleupgradehelper = function(){
 	if(cg.toolsettings.autoupgrade === 0){
 		cg.toolsettings.autoupgrade = 1;
@@ -171,9 +156,36 @@ window.cg.setautoupgradeinterval = function(){
 	clearInterval(cg.upgradeinterval);
 	window.cg.upgradeinterval = setInterval(cg.tryUpgrade, cg.toolsettings.autoupgrade_interval);
 }
-// eof upgrades
 
-//walls
+window.cg.togglewallspam = function(){
+	if(cg.toolsettings.autowalls === 0){
+		cg.toolsettings.autowalls = 1;
+		window.cg.wallinterval = setInterval(cg.trywall, 500);
+		cg.messages.show("activated wallrebuilder!");
+	}else{
+		cg.toolsettings.autowalls = 0;
+		clearInterval(cg.wallinterval);
+		cg.messages.show("deactivated wallrebuilder!");
+	}
+	cg.menuButtons[2].toggle();
+}
+
+window.cg.trywall = function(){
+	if(cg.wallstrategy.length){
+		if(cg.game.state.players[cg.game.playerIndex].factories[0].stacks_current > 0){
+			for(var i = 0; i < cg.wallstrategy.length; i++){
+				var arr = cg.wallstrategy[i].split(",");
+				arr[0] = parseInt(arr[0]);
+				arr[1] = parseInt(arr[1]);
+				if(cg.isValidPosition(arr[0],arr[1])){
+					cg.gameserver.emit("ActivateFactory", {index: 0,position: cg.networkablePosition(arr)});
+					break;
+				}
+			}
+		}
+	}
+}
+
 // REQUIRES HACK INTO COREGROUNDS.JS
 window.cg.recordtile = function(arr){
 	var str = arr[0] +','+ arr[1];
@@ -206,18 +218,24 @@ window.cg.showstrategy = function(){
 	}
 }
 
-window.cg.togglewallspam = function(){
-	if(cg.toolsettings.autowalls === 0){
-		cg.toolsettings.autowalls = 1;
-		cg.messages.show("activated autowalls!");
-	}else{
-		cg.toolsettings.autowalls = 0;
-		cg.messages.show("deactivated autowalls!");
-	}
-	cg.menuButtons[2].toggle();
+window.cg.isValidPosition = function(x,y){
+    let found  = false;
+    for(let e in cg.game.state.entities){
+      if(cg.game.state.entities.hasOwnProperty(e)){
+        let nx = cg.game.state.entities[e].x/128|0;
+        let ny = cg.game.state.entities[e].y/128|0;
+        if(nx === x && ny === y){
+            return false;
+        }
+      }
+    }
+    return true;
 }
 
-//cg.gameserver.emit("ActivateFactory", {index: 0,position: cg.networkablePosition(e)});
+window.cg.pointToTile = function(t, e) {
+	const o = [];
+	return o.push(t / 128 | 0), o.push(e / 128 | 0), o
+}
 
 window.cg.networkablePosition = function(t){
 	let e;
@@ -231,20 +249,6 @@ window.cg.flipCoordinates = function(t){
 	t.x = Math.abs(t.x - 1920);
 	t.y = Math.abs(t.y - 896);
 	return t;
-}
-
-// end of walls
-
-// overlay
-window.cg.toggleiol = function(){
-	if(cg.toolsettings.iol === 0){
-		cg.toolsettings.iol = 1;
-		cg.messages.show("activated Ingame Overlay!");
-	}else{
-		cg.toolsettings.iol = 0;
-		cg.messages.show("deactivated Ingame Overlay!");
-	}
-	cg.menuButtons[3].toggle();
 }
 
 window.showtoolMenu = function() {
@@ -296,10 +300,8 @@ window.showtoolMenu = function() {
 }
 
 document.addEventListener('keyup', (e) => {
-	// F5
 	if (e.keyCode === 116)
 		chrome.runtime.reload();
-	// F10
 	if (e.keyCode === 121){
 		if(!$("#menu").classList.contains("active")){
 			if(cg.game.status === 0){
@@ -317,6 +319,7 @@ cg.screens.add("inkmenu",() => {
 	let e = "";
 	e += `<button class="close" onclick="cg.screens.hide()">${cg.icons.get("close")}</button>`;
 	e += `<div style="display: grid;grid-template-columns: 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px;background-color: black;padding: 10px;grid-column-gap: 3px;grid-row-gap: 3px;">`;
+
 	let i = 0;
 	let r = 0;
 	let z = 0;
@@ -341,14 +344,3 @@ cg.screens.add("inkmenu",() => {
 cg.event.on("game reset", () => {
 	cg.clearToolsettings();
 });
-
-// cg.game.state.players[0].factories
-// Object.keys(cg.game.state.players[0].factories).forEach(key => console.log(key, cg.game.state.players[0].factories[key]))`,
-
-/*cg.event.on("joined lobby", () => {
-	console.log("Joined Lobby")
-});
-
-cg.event.on("left lobby", () => {
-	console.log("Left Lobby")
-});*/
