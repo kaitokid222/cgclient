@@ -109,7 +109,7 @@ window.cg.upgradeDB = undefined;
 window.cg.event.on("session ready", ()=>{cg.upgradeDB = extractUpgrades(JSON.parse(localStorage.getItem("config")));});
 function getUpgradeDescription(upgrade, number){
   let c, n;
-  let e = `Upgrade: ` + number+1 + `<br> - `;
+  let e = `<span style="color : rgb(125,125,125);">` + upgrade.name.toUpperCase() + ` UPGRADE: ` + (number+1) + ` -  </span>`;
   if(number === 0){
     c = 0;
     n = upgrade.values[number];
@@ -125,16 +125,16 @@ function getUpgradeDescription(upgrade, number){
       if(n !== "MAX"){
         n = n*10 + '%';
       }
-      e += `increases ` + upgrade.name + ` by ` + c*10 + `% effectivity (-> ` + n + ` effectivity).`;
+      e += `increases ` + upgrade.name + ` by ` + c*10 + `% effectivity<span style="color : rgb(0,255,0);"> (-> ` + n + ` effectivity). </span>`;
       return e;
     case "range":
-      e += `increases ` + upgrade.name + ` by ` + c + ` tiles (-> ` + n + ` tiles).`;
+      e += `increases ` + upgrade.name + ` by ` + c + ` tiles <span style="color : rgb(0,255,0);">(-> ` + n + ` tiles).</span>`;
       return e;
     case "movement speed":
-      e += `increases ` + upgrade.name + ` by ` + c + ` tiles/s (-> ` + n + ` tiles/s).`;
+      e += `increases ` + upgrade.name + ` by ` + c + ` tiles/s <span style="color : rgb(0,255,0);">(-> ` + n + ` tiles/s).</span>`;
       return e;
     case "attack speed":
-      e += `increases ` + upgrade.name + ` by ` + c + `/s (-> ` + n + `/s).`;
+      e += `increases ` + upgrade.name + ` by ` + c + `/s <span style="color : rgb(0,255,0);">(-> ` + n + `/s).</span>`;
       return e;
     case "regeneration":
     case "freeze":
@@ -142,10 +142,10 @@ function getUpgradeDescription(upgrade, number){
       if(n !== "MAX"){
         n = n*10 + '%';
       }
-      e += `increases ` + upgrade.name + ` by ` + c*10 + `% (-> ` + n + `).`;
+      e += `increases ` + upgrade.name + ` by ` + c*10 + `% <span style="color : rgb(0,255,0);">(-> ` + n + `).</span>`;
       return e;
     default:
-      e += `increases ` + upgrade.name + ` by ` + c + ` (-> ` + n + `).`;
+      e += `increases ` + upgrade.name + ` by ` + c + ` <span style="color : rgb(0,255,0);">(-> ` + n + `).</span>`;
       return e;
   }
 }
@@ -181,11 +181,10 @@ cg.screens.add("ingame-tooltip", ()=>{
   }
   let fup = getUpgrade(f.eid);
   let articleStyle = ``;
-  articleStyle += `"padding:1rem 5rem 5rem 5rem; background-color: rgba(27,31,34,.50); border-radius: 4px;"`
-  let et =  `<article id="tooltip" class="active" style=`+articleStyle+`>`;
-  et += ` <h3>` + fup.name + `</h3>`;
+  articleStyle += `"text-align:center;font-size: 16px; position: fixed; left: 7.4rem; bottom: 0; right:23.4rem; padding:0.5rem 1rem 0.5rem 1rem; background-color: rgba(27,31,34,.75); border-radius: 4px;"`
+  let et =  `<div id="tooltip" class="active" style=`+articleStyle+`>`;
   et += ` <div>` + getUpgradeDescription(fup, lvl) + `</div>`;
-  et += `</article>`;
+  et += `</div>`;
   cg.screens.update("ingame-tooltip",et).addClass("clickthrough");
 });
 for(let i = 0; i < cg.upgradebuttons.length; i++){
