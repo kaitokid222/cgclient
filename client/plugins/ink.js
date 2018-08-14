@@ -22,6 +22,18 @@ class menuButton{
   }
 }
 
+// ty stackoverflow
+Array.prototype.remove = function() {
+	var what, a = arguments, L = a.length, ax;
+	while (L && this.length) {
+		what = a[--L];
+		while ((ax = this.indexOf(what)) !== -1) {
+			this.splice(ax, 1);
+		}
+	}
+	return this;
+};
+
 window.cg.toolsettings = {
     autospawn : 0,
     autospawn_limit : 15,
@@ -30,14 +42,44 @@ window.cg.toolsettings = {
     autoupgrade_min : 3,
     autoupgrade_interval : 5000,
     autowalls : 0,
+	// 1 passive, records wallplacement, tries to recover
+	// 2 as passive but stack is available for certain time it places the wall somewhre (pattern, random)
+	// 3 agressive, follows its own pattern to build walls
+    autowalls_mode : 1,
     iol : 0,
 };
 
+window.cg.wallstrategy = [];
 window.cg.menuButtons = [];
 cg.menuButtons.push(new menuButton("spawnbot","Keep Spawning", "cg.toggleautospawn(); hideMenu();"));
 cg.menuButtons.push(new menuButton("upgradebot","Upgrade Minions", "cg.toggleupgradehelper(); hideMenu();"));
-cg.menuButtons.push(new menuButton("wallbot","Repair Walls", "cg.togglewallspam(); hideMenu();"));
+cg.menuButtons.push(new menuButton("wallbot","Wallhelper", "cg.togglewallspam(); hideMenu();"));
 cg.menuButtons.push(new menuButton("igoverlay","Show extra Infos", "cg.toggleiol(); hideMenu();"));
+
+// disable everything after the match
+window.cg.clearToolsettings = function(){
+	if(cg.toolsettings.autospawn === 1){
+		cg.toolsettings.autospawn = 0;
+		cg.menuButtons[0].toggle();
+	}
+	if(cg.toolsettings.autoupgrade === 1){
+		cg.toolsettings.autoupgrade = 0;
+		cg.menuButtons[1].toggle();
+	}
+	if(cg.toolsettings.autowalls === 1){
+		cg.toolsettings.autowalls = 0;
+		cg.menuButtons[2].toggle();
+	}
+	window.cg.wallstrategy = [];
+	if(cg.toolsettings.iol === 1){
+		cg.toolsettings.iol = 0;
+		cg.menuButtons[3].toggle();
+	}
+}
+
+window.cg.arrayRandom = function(t) {
+	return t[Math.floor(Math.random() * t.length)]
+}
 
 // minions 
 window.cg.toggleautospawn = function(){
@@ -87,10 +129,6 @@ window.cg.SpawnMinion = function() {
 		}
 	}
 }
-
-window.cg.arrayRandom = function(t) {
-	return t[Math.floor(Math.random() * t.length)]
-}
 // eof minion
 
 // upgradehelper
@@ -134,6 +172,40 @@ window.cg.setautoupgradeinterval = function(){
 	window.cg.upgradeinterval = setInterval(cg.tryUpgrade, cg.toolsettings.autoupgrade_interval);
 }
 // eof upgrades
+
+//walls
+// REQUIRES HACK INTO COREGROUNDS.JS
+window.cg.recordtile = function(arr){
+	var str = arr[0] +','+ arr[1];
+	if(cg.wallstrategy.indexOf(str) === -1){
+		cg.wallstrategy.push(str);
+	}
+}
+
+window.cg.settile = function(str){
+	if(cg.wallstrategy.indexOf(str) === -1){
+		cg.wallstrategy.push(str);
+		let last = cg.wallstrategy.length - 1
+		document.getElementById(str).innerHTML = last+1;
+		document.getElementById(str).style["background-color"] = "rgba(0, 204, 0, 0.8)";
+	}else{
+		cg.wallstrategy.remove(str);
+		document.getElementById(str).innerHTML = "";
+		document.getElementById(str).style["background-color"] = "rgba(255, 255, 255, 0.1)";
+	}
+}
+
+window.cg.showstrategy = function(){
+	if(cg.wallstrategy.length){
+		for(var i = 0; i < cg.wallstrategy.length; i++){
+			var id = String(cg.wallstrategy[i]);
+			document.getElementById(id).innerHTML = i+1;
+			document.getElementById(id).style["background-color"] = "rgba(0, 204, 0, 0.8)";
+		}
+		cg.messages.show("Restored strategy");
+	}
+}
+
 window.cg.togglewallspam = function(){
 	if(cg.toolsettings.autowalls === 0){
 		cg.toolsettings.autowalls = 1;
@@ -145,6 +217,25 @@ window.cg.togglewallspam = function(){
 	cg.menuButtons[2].toggle();
 }
 
+//cg.gameserver.emit("ActivateFactory", {index: 0,position: cg.networkablePosition(e)});
+
+window.cg.networkablePosition = function(t){
+	let e;
+	e = {
+		x: 128 * (t[0] + .5),
+		y: 128 * (t[1] + .5)
+	};
+	return 1 === cg.game.playerIndex && (e = cg.flipCoordinates(e)), e.x = e.x / 128 * 1e3, e.y = e.y / 128 * 1e3, e.x | e.y << 16
+}
+window.cg.flipCoordinates = function(t){
+	t.x = Math.abs(t.x - 1920);
+	t.y = Math.abs(t.y - 896);
+	return t;
+}
+
+// end of walls
+
+// overlay
 window.cg.toggleiol = function(){
 	if(cg.toolsettings.iol === 0){
 		cg.toolsettings.iol = 1;
@@ -190,6 +281,11 @@ window.showtoolMenu = function() {
 					e += '</div>';
 				}
 			}
+			if(b.name == "wallbot"){
+				e += new menuButton("wbgrid","Wallstrategy", "cg.screens.show('inkmenu'); cg.showstrategy(); hideMenu();","modify").getHtml();
+				if(cg.toolsettings.autowalls === 1){
+				}
+			}
 			e += '<div class="menu-spacer"></div>';
 		});
 		e += '<div class="menu-spacer"></div>';
@@ -217,11 +313,34 @@ document.addEventListener('keyup', (e) => {
 	}
 }, false);
 
-/*cg.screens.add("inkmenu",() => {
-	cg.screens.update("inkmenu", `<div class="container-full">
-	<button class="close" onclick="cg.screens.hide()">${cg.icons.get("close")}</button>
-	<div class="content-text"><h2>First one!</h2><h3>Header</h3><ul class="changes"><li class="buffed">in a list</li><li class="nerfed">in a list</li><li class="added">in a list</li></ul><button class="box previous" onclick="Screens.show('home')">BUTTON</button></div></div>`)
-});*/
+cg.screens.add("inkmenu",() => {
+	let e = "";
+	e += `<button class="close" onclick="cg.screens.hide()">${cg.icons.get("close")}</button>`;
+	e += `<div style="display: grid;grid-template-columns: 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px;background-color: black;padding: 10px;grid-column-gap: 3px;grid-row-gap: 3px;">`;
+	let i = 0;
+	let r = 0;
+	let z = 0;
+	for (; i < 105; i++){
+		var coordstring = String(z+","+r);
+		if((z === 14 && r === 0) || (z === 0 && r === 6)){
+			e += '<div style="background-color: rgba(255, 255, 255, 1);border: 1px solid rgba(0, 0, 0, 0.8);padding: 5px;height: 48px;width: 48px;font-size: 32px;color: red;text-align: center;vertical-align: middle;border-radius: 24px;">c</div>';
+		}else{
+			e += '<div id="' + coordstring + '" onclick="cg.settile(&quot;' + coordstring + '&quot;)" style="background-color: rgba(255, 255, 255, 0.1);border: 1px solid rgba(0, 0, 0, 0.8);padding: 5px;height: 48px;width: 48px;font-size: 16px;color: red;text-align: center;vertical-align: middle;border-radius: 15px;"> </div>';
+		}
+		if(z === 14){
+			r++;
+			z = 0;
+		}else{
+			z++;
+		}
+	}
+	e += `</div>`;
+	cg.screens.update("inkmenu", e);
+});
+
+cg.event.on("game reset", () => {
+	cg.clearToolsettings();
+});
 
 // cg.game.state.players[0].factories
 // Object.keys(cg.game.state.players[0].factories).forEach(key => console.log(key, cg.game.state.players[0].factories[key]))`,
