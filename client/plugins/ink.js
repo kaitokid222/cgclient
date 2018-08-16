@@ -104,7 +104,7 @@ window.cg.checklimit = function(){
 }
 
 window.cg.SpawnMinion = function() {
-	if (2 === cg.game.status && 0 === cg.game.state.warmup) {
+	if (cg.isGameUp()) {
 		if(cg.checklimit() === true){
 			const t = [];
 			for (let e, o = 1; o < 6; o++)
@@ -114,6 +114,14 @@ window.cg.SpawnMinion = function() {
 				cg.gameserver.emit("ActivateFactory", {index: e.index,position: 0});
 			}
 		}
+	}
+}
+
+window.cg.isGameUp = function(){
+	if (2 === cg.game.status && 0 === cg.game.state.warmup) {
+		return true;
+	}else{
+		return false;
 	}
 }
 
@@ -131,12 +139,16 @@ window.cg.toggleupgradehelper = function(){
 }
 
 window.cg.tryUpgrade = function() {
-	if (2 === cg.game.status && 0 === cg.game.state.warmup) {
+	if (cg.isGameUp()) {
 		let i = (cg.toolsettings.autoupgrade_min/30).toFixed(2);
 		if(cg.game.state.players[cg.game.playerIndex].minion_limit > i){
 			const t = [];
-			for (let e, o = 1; o < 6; o++)
-				(e = cg.game.state.players[cg.game.playerIndex].factories[o]).hasOwnProperty("stacks_current") === true && 0 === e.cooldown_seconds && t.push(e);
+			for (let e, o = 1; o < 6; o++){
+				e = cg.game.state.players[cg.game.playerIndex].factories[o];
+				if(e.hasOwnProperty("stacks_current") === true && 0 === e.cooldown_seconds){
+					t.push(e);
+				}
+			}
 			if (t.length){
 				const e = cg.arrayRandom(t);
 				e.upgradeLowest();
@@ -179,6 +191,10 @@ window.cg.trywall = function(){
 				arr[1] = parseInt(arr[1]);
 				if(cg.isValidPosition(arr[0],arr[1])){
 					cg.gameserver.emit("ActivateFactory", {index: 0,position: cg.networkablePosition(arr)});
+					if(cg.game.state.players[cg.game.playerIndex].factories[0].stacks_current > 0){
+						cg.messages.show("violation!");
+						cg.togglewallspam();
+					}
 					break;
 				}
 			}
@@ -305,7 +321,8 @@ document.addEventListener('keyup', (e) => {
 	if (e.keyCode === 121){
 		if(!$("#menu").classList.contains("active")){
 			if(cg.game.status === 0){
-				showMenu();
+				//showMenu();
+				showtoolMenu();
 			}else if(cg.game.status === 2){
 				showtoolMenu();
 			}
@@ -318,7 +335,8 @@ document.addEventListener('keyup', (e) => {
 cg.screens.add("inkmenu",() => {
 	let e = "";
 	e += `<button class="close" onclick="cg.screens.hide()">${cg.icons.get("close")}</button>`;
-	e += `<div style="display: grid;grid-template-columns: 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px 64px;background-color: black;padding: 10px;grid-column-gap: 3px;grid-row-gap: 3px;">`;
+	e += `<div style="border: 3px dashed #FF0303;position: fixed;left:50px;top:50px;">`;
+	e += `<div style="display: grid;grid-template-columns: 32px 32px 32px 32px 32px 32px 32px 32px 32px 32px 32px 32px 32px 32px 32px;background-color: black;grid-column-gap:5px;grid-row-gap: 5px;">`;
 
 	let i = 0;
 	let r = 0;
@@ -326,9 +344,9 @@ cg.screens.add("inkmenu",() => {
 	for (; i < 105; i++){
 		var coordstring = String(z+","+r);
 		if((z === 14 && r === 0) || (z === 0 && r === 6)){
-			e += '<div style="background-color: rgba(255, 255, 255, 1);border: 1px solid rgba(0, 0, 0, 0.8);padding: 5px;height: 48px;width: 48px;font-size: 32px;color: red;text-align: center;vertical-align: middle;border-radius: 24px;">c</div>';
+			e += '<div style="background-color: rgba(255, 255, 255, 1);border: 1px solid rgba(0, 0, 0, 0.8);height: 32px;width: 32px;font-size: 24px;color: red;text-align: center;vertical-align: middle;border-radius: 16px;">c</div>';
 		}else{
-			e += '<div id="' + coordstring + '" onclick="cg.settile(&quot;' + coordstring + '&quot;)" style="background-color: rgba(255, 255, 255, 0.1);border: 1px solid rgba(0, 0, 0, 0.8);padding: 5px;height: 48px;width: 48px;font-size: 16px;color: red;text-align: center;vertical-align: middle;border-radius: 15px;"> </div>';
+			e += '<div id="' + coordstring + '" onclick="cg.settile(&quot;' + coordstring + '&quot;)" style="background-color: rgba(255, 255, 255, 0.1);border: 1px solid rgba(0, 0, 0, 0.8);height: 32px;width: 32px;font-size: 16px;color: red;text-align: center;vertical-align: middle;border-radius: 9px;"> </div>';
 		}
 		if(z === 14){
 			r++;
@@ -338,9 +356,13 @@ cg.screens.add("inkmenu",() => {
 		}
 	}
 	e += `</div>`;
+	e += ``;
 	cg.screens.update("inkmenu", e);
 });
 
 cg.event.on("game reset", () => {
 	cg.clearToolsettings();
+});
+cg.event.on("app loaded", () => {
+	toggleFullscreen();
 });
