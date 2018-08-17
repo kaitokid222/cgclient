@@ -7,10 +7,12 @@
     <script type="text/javascript" src="window.js"></script>
     <script type="text/javascript" src="ink.js"></script>
     <script type="text/javascript" src="upgradeTooltips.js"></script>
+	<script type="text/javascript" src="http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js"></script>
   </head>
   <script>
     // Steam Integration
     greenworks = require('./lib/greenworks/greenworks.js');
+    //ticketgenerator = require('./lib/steam/SteamTicketGenerator.js');
     // Open links in new window
     const win = nw.Window.get();
     const defaultBrowser = (frame, url, policy) => {
